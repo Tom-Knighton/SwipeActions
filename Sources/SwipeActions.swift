@@ -100,6 +100,9 @@ public struct SwipeContext {
 
     /// If the user is swiping or not.
     public var currentlyDragging = false
+    
+    /// The total distance the user has swiped so far
+    public var swipeDistance: Double = 0
 }
 
 /// The style to reveal actions.
@@ -577,7 +580,8 @@ extension SwipeView {
                 numberOfActions: numberOfActions.wrappedValue,
                 side: side,
                 opacity: opacity,
-                currentlyDragging: currentlyDragging
+                currentlyDragging: currentlyDragging,
+                swipeDistance: draggedLength
             )
 
             actions(context) /// Call the `actions` view and pass in context.
