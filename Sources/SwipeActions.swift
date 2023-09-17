@@ -166,6 +166,9 @@ public struct SwipeOptions {
 
     /// The animation used for adjusting the content's view when it's triggered.
     var actionContentTriggerAnimation = Animation.spring(response: 0.2, dampingFraction: 1, blendDuration: 1)
+    
+    /// If true, the swipe actions will automatically close once the drag gesture ends
+    var closeOnEnd = false
 
     /// The animation used at the start of the gesture, after dragging the `swipeMinimumDistance`.
 //    var swipeMinimumDistanceAnimation = Animation.spring(response: 0.3, dampingFraction: 1, blendDuration: 1)
@@ -946,8 +949,13 @@ extension SwipeView {
 
     /// Represents the end of a gesture.
     func end(value: DragGesture.Value, velocity: CGFloat) {
-        let totalOffset = savedOffset + value.translation.width
-        let totalPredictedOffset = (savedOffset + value.predictedEndTranslation.width) * 0.5
+        var totalOffset = savedOffset + value.translation.width
+        var totalPredictedOffset = (savedOffset + value.predictedEndTranslation.width) * 0.5
+        
+        if options.closeOnEnd {
+            totalOffset = 0
+            totalPredictedOffset = 0
+        }
 
         if getDisallowedSide(totalOffset: totalPredictedOffset) != nil {
             currentSide = nil
@@ -1260,6 +1268,13 @@ public extension SwipeView {
         view.options.offsetTriggerAnimationDamping = damping
         return view
     }
+    
+    /// Whether or not the swipe actions should immediately close after user stops dragging
+    func swipeCloseOnEnd(_ value: Bool) -> SwipeView {
+        var view = self
+        view.options.closeOnEnd = value
+        return view
+    }
 }
 
 /// Modifier for a clipped delete transition effect.
@@ -1428,3 +1443,15 @@ struct AllowSwipeToTriggerKey: PreferenceKey {
     static var defaultValue: Bool? = nil
     static func reduce(value: inout Bool?, nextValue: () -> Bool?) { value = nextValue() }
 }
+
+#Preview(body: {
+    SwipeView {
+        Text("hey")
+    } leadingActions: { _ in
+        SwipeAction(systemImage: "arrow.up", action: {})
+    } trailingActions: { _ in
+        SwipeAction(systemImage: "arrow.down", action: {})
+    }
+    .swipeCloseOnEnd(false)
+
+})
