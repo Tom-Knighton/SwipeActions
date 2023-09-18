@@ -957,8 +957,9 @@ extension SwipeView {
         var totalOffset = savedOffset + value.translation.width
         var totalPredictedOffset = (savedOffset + value.predictedEndTranslation.width) * 0.5
         
+        let threshold = options.swipeMinimumDistance + 75
         if options.closeOnEnd {
-            if (trailingTriggeredOffset...leadingTriggeredOffset).contains(totalOffset) == false {
+            if (-threshold...threshold).contains(totalOffset) == false {
                 if totalOffset > 0 {
                     // Left side
                     leadingState = .triggered
@@ -1464,8 +1465,15 @@ struct AllowSwipeToTriggerKey: PreferenceKey {
 #Preview(body: {
     SwipeView {
         Text("hey")
-    } leadingActions: { _ in
-        SwipeAction(systemImage: "arrow.up", action: { print("done 1")})
+            .frame(maxWidth: .infinity)
+            .padding(.horizontal, 16)
+            .border(.red)
+    } leadingActions: { context in
+        if context.swipeDistance < 200 {
+            SwipeAction(systemImage: "arrow.down", backgroundColor: .purple, action: { print("Arrow.down") })
+        } else {
+            SwipeAction(systemImage: "bookmark.fill", backgroundColor: .blue, action: { print("Bookmark.fill") })
+        }
     } trailingActions: { _ in
         SwipeAction(systemImage: "arrow.down", action: { print("done 2")})
     }
