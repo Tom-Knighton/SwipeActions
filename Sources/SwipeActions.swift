@@ -958,7 +958,7 @@ extension SwipeView {
         var totalPredictedOffset = (savedOffset + value.predictedEndTranslation.width) * 0.5
         
         if options.closeOnEnd {
-            if (trailingExpandedOffset...leadingExpandedOffset).contains(totalOffset) == false {
+            if (trailingTriggeredOffset...leadingTriggeredOffset).contains(totalOffset) == false {
                 if totalOffset > 0 {
                     // Left side
                     leadingState = .triggered
