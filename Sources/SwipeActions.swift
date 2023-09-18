@@ -103,6 +103,10 @@ public struct SwipeContext {
     
     /// The total distance the user has swiped so far
     public var swipeDistance: Double = 0
+    
+    /// The config for the parent swipe view
+    public var swipeViewOptions: SwipeOptions? = nil
+
 }
 
 /// The style to reveal actions.
@@ -315,7 +319,7 @@ public struct SwipeAction<Label: View, Background: View>: View {
         } perform: {}
         .buttonStyle(SwipeActionButtonStyle())
         .onChange(of: swipeContext.state.wrappedValue) { state in /// Read changes in state.
-            guard let allowSwipeToTrigger, allowSwipeToTrigger else { return }
+            guard allowSwipeToTrigger == true || swipeContext.swipeViewOptions?.closeOnEnd == true else { return }
 
             if let state {
                 if state == .triggering || state == .triggered {
@@ -445,7 +449,7 @@ public struct SwipeView<Label, LeadingActions, TrailingActions>: View where Labe
 
         // MARK: - Add gestures
 
-        .highPriorityGesture( /// Add the drag gesture.
+        .gesture( /// Add the drag gesture.
             DragGesture(minimumDistance: options.swipeMinimumDistance)
                 .updating($currentlyDragging) { value, state, transaction in
                     state = true
@@ -584,7 +588,8 @@ extension SwipeView {
                 side: side,
                 opacity: opacity,
                 currentlyDragging: currentlyDragging,
-                swipeDistance: draggedLength
+                swipeDistance: draggedLength,
+                swipeViewOptions: options
             )
 
             actions(context) /// Call the `actions` view and pass in context.
@@ -953,6 +958,18 @@ extension SwipeView {
         var totalPredictedOffset = (savedOffset + value.predictedEndTranslation.width) * 0.5
         
         if options.closeOnEnd {
+            if (leadingExpandedOffset...trailingExpandedOffset).contains(totalOffset) == false {
+                if totalOffset > 0 {
+                    // Left side
+                    leadingState = .triggered
+                    trigger(side: .leading, velocity: velocity)
+                    
+                } else {
+                    // Right side
+                    trailingState = .triggered
+                    trigger(side: .trailing, velocity: velocity)
+                }
+            }
             totalOffset = 0
             totalPredictedOffset = 0
         }
@@ -1448,10 +1465,11 @@ struct AllowSwipeToTriggerKey: PreferenceKey {
     SwipeView {
         Text("hey")
     } leadingActions: { _ in
-        SwipeAction(systemImage: "arrow.up", action: {})
+        SwipeAction(systemImage: "arrow.up", action: { print("done 1")})
     } trailingActions: { _ in
-        SwipeAction(systemImage: "arrow.down", action: {})
+        SwipeAction(systemImage: "arrow.down", action: { print("done 2")})
     }
-    .swipeCloseOnEnd(false)
+    .swipeCloseOnEnd(true)
+    .swipeMinimumDistance(30)
 
 })
